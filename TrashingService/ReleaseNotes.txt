@@ -1,0 +1,17 @@
+Go to Release_Simulator/Release/net6.0 from your terminal/command prompt
+
+Run -> dotnet TrashingService.dll /home/chintu/Trash 3 4 5 1
+where 
+basePath-/home/chintu/Trash50
+numOfDirectories-3
+numOfSubDirectories=4
+noOfFilesInEachFolder-5
+sizeOfFileInGB-1
+
+Or,
+Run -> dotnet TrashingService.dll /home/chintu/Trash 3 4 5
+where
+basePath-/home/chintu/Trash 
+breadth-3
+depth-4
+totalSizeinGB-5

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-
+namespace TrashingService.Common;
 public class Terminal
 {
     private Process process;

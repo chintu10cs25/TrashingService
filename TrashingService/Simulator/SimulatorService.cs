@@ -1,3 +1,8 @@
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using TrashingService.Common;
+
+namespace TrashingService.Simulator;
 public class SimulatorService
 {
     private Terminal terminal;
@@ -15,7 +20,7 @@ public class SimulatorService
         long availableSpaceInBytes = driveInfo.AvailableFreeSpace;
         long availableSpaceInGB = availableSpaceInBytes/(1024 * 1024 * 1024);
         // Check if there is enough space to create the file
-        double fileSizeInBytes = totalSizeInGB * 1024 * 1024 * 1024;
+        long totalSizeInBytes = totalSizeInGB * 1024 * 1024 * 1024;
         if (availableSpaceInGB < totalSizeInGB)
         {
             Console.WriteLine($"Not enough space to create the file. Available space:{availableSpaceInGB}");
@@ -28,11 +33,11 @@ public class SimulatorService
             totalSizeInGB= availableSpaceInGB-bufferSize;
         }
 
-
         int numOfFiles=GetNumOfFiles(breadth,depth);
         Console.WriteLine($"Directories:{numOfFiles+1}");
-        Console.WriteLine($"Files:{numOfFiles}"); 
+        Console.WriteLine($"Files:{numOfFiles}");
 
+        long sizePerfileInBytes = totalSizeInBytes / numOfFiles;
         string blockSize="1G";
         if(numOfFiles<totalSizeInGB)
         {
@@ -138,25 +143,24 @@ public class SimulatorService
                 .Select(num => Path.GetRandomFileName())
                 .ToList()
         );
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string command = string.Join(" && ",
+           directoryList.Select(directory => $"mkdir -p \"{basePath}/{directory}\"")
+           .Concat(subdirectoriesByDirectory.SelectMany(
+               kvp => kvp.Value.Select(subdirectory => $"mkdir -p \"{basePath}/{kvp.Key}/{subdirectory}\"")))
+           .Concat(subdirectoriesByDirectory.SelectMany(
+               kvp => kvp.Value.SelectMany(subdir => Enumerable.Range(1, numOfFiles).Select((i) =>
+               {
+                   string fileName = Path.GetRandomFileName();
+                   string ddCommand = $"dd if=/dev/urandom of=\"{basePath}/{kvp.Key}/{subdir}/{fileName}.txt\" bs=1M count={fileSizeInGB * 1024}";
+                   return ddCommand;
+               }))
+               )));
 
-        string command = string.Join(" && ",
-            directoryList.Select(directory => $"mkdir -p \"{basePath}/{directory}\"")
-            .Concat(subdirectoriesByDirectory.SelectMany(
-                kvp => kvp.Value.Select(subdirectory => $"mkdir -p \"{basePath}/{kvp.Key}/{subdirectory}\"")
-            ))
-            .Concat(subdirectoriesByDirectory.SelectMany(
-                kvp=>kvp.Value.SelectMany(subdir=>Enumerable.Range(1, numOfFiles).Select((i) =>
-                 {
-                    string fileName=Path.GetRandomFileName();
-                    string ddCommand=$"dd if=/dev/urandom of=\"{basePath}/{kvp.Key}/{subdir}/{fileName}.txt\" bs=1M count={fileSizeInGB * 1024}";
-                    return ddCommand;
-                }))
-                ))
-        );
-            
-        //WriteDirectoriesToConsole(subdirectoriesByDirectory); 
-        terminal.Enter(command); 
-
+            //WriteDirectoriesToConsole(subdirectoriesByDirectory); 
+            terminal.Enter(command);
+        }      
     }
     public void CreateDirectoriesWithPayloadUsingCP(string basePath,string payLoadPath,string prefix,int directories,int subdirectories)
     {
@@ -241,4 +245,5 @@ public class SimulatorService
             }
         }
     }
+   
 }

@@ -7,9 +7,10 @@ public class Terminal
         process = new Process();
         process.StartInfo.FileName = "/bin/bash";
     }
-    public void Enter(string command){        
+    public string Enter(string command){        
         process.StartInfo.Arguments = $"-c \"{command}\"";
         process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
         process.Start();
         process.WaitForExit();
 
@@ -17,5 +18,6 @@ public class Terminal
         {
             Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
         }
+         return  process.StandardOutput.ReadToEnd();
     }
 }

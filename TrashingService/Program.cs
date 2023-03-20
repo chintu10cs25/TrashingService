@@ -1,28 +1,36 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using TrashingService;
 using TrashingService.Simulator;
 
 class Program
 {
     static void Main(string[] args)
-    {                
-        try
-        {
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
-                Console.WriteLine("Or If you want to exit then enter exit");
-            }
-            Start(args);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            Console.WriteLine("Please enter valid instruction");
-            Start(new string[0]);
-        }
-      
+    {
+        TrashingProcessor trashingProcessor = new TrashingProcessor();
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        trashingProcessor.DeleteUsingLs("/home/chintu/Trash2/");
+        sw.Stop();
+        Console.WriteLine("Total Time stamp:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
+
+        //try
+        //{
+        //    if (args.Length == 0)
+        //    {
+        //        Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
+        //        Console.WriteLine("Or If you want to exit then enter exit");
+        //    }
+        //    Start(args);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine(ex.Message);
+        //    Console.WriteLine("Please enter valid instruction");
+        //    Start(new string[0]);
+        //}
+
     }
     static void Start(string[] args)
     {
@@ -30,7 +38,8 @@ class Program
         {
             Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
             Console.WriteLine("Or If you want to exit then enter exit");
-            string instruction = Console.ReadLine();
+            //string instruction = Console.ReadLine();
+            string instruction = "/home/chintu/Trash 6 8 200";
             if (instruction.Trim().ToUpperInvariant() == "EXIT")
             {
                 Environment.Exit(0);

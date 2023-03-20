@@ -8,8 +8,4 @@
     <Platforms>AnyCPU;ARM64;x64</Platforms>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Trashing\" />
-  </ItemGroup>
-
 </Project>

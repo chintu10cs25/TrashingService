@@ -2,12 +2,17 @@
   "profiles": {
     "TrashingService": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\\\Users\\\\Chintu\\\\Trash\r\n3\r\n4\r\n10",
+      "commandLineArgs": "C:\\\\Users\\\\Chintu\\\\Trash\r\n6\r\n8\r\n200",
       "workingDirectory": "C:\\Users\\Chintu\\Repos\\TrashingService"
     },
     "WSL": {
       "commandName": "WSL2",
       "distributionName": "kali-linux"
+    },
+    "ForLinux": {
+      "commandName": "WSL2",
+      "commandLineArgs": "/home/chintu/Trash1\r\n10\r\n20\r\n200",
+      "workingDirectory": "C:\\Users\\Chintu\\Repos\\TrashingService"
     }
   }
 }

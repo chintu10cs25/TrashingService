@@ -33,13 +33,15 @@ public class SimulatorService
             totalSizeInGB= availableSpaceInGB-bufferSize;
         }
 
-        int numOfFiles=GetNumOfFiles(breadth,depth);
+        long numOfFiles=GetNumOfFiles(breadth,depth);
         Console.WriteLine($"Directories:{numOfFiles+1}");
         Console.WriteLine($"Files:{numOfFiles}");
 
         long sizePerfileInBytes = totalSizeInBytes / numOfFiles;
+
+
         string blockSize="1G";
-        if(numOfFiles<totalSizeInGB)
+        if(numOfFiles<=totalSizeInGB)
         {
             fileSize=totalSizeInGB/numOfFiles;
             blockSize="1G";
@@ -72,6 +74,17 @@ public class SimulatorService
         {
             return;
         }
+        //Parallel.For(1, breadth, x => 
+        //{
+        //    string directoryPath = Path.Combine(basePath, Path.GetRandomFileName());
+        //    string fileName = Path.GetRandomFileName();
+        //    string mkdirCommand = $"mkdir -p \"{directoryPath}\"";
+        //    string ddCommand = $"dd if=/dev/urandom of=\"{directoryPath}/{fileName}.txt\" bs={blockSize} count={count}";
+        //    //The bs (block size) option is set to 1G, indicating that each block of data should be 1GB in size, and the count option is set to (fileSizeInGB * 1024)
+        //    string command = $"{mkdirCommand} && {ddCommand}";
+        //    terminal.Enter(command);
+        //    LoadData(directoryPath, breadth, depth - 1, count, blockSize);
+        //});
 
         for (int i = 1; i <= breadth; i++)
         {
@@ -82,7 +95,7 @@ public class SimulatorService
             //The bs (block size) option is set to 1G, indicating that each block of data should be 1GB in size, and the count option is set to (fileSizeInGB * 1024)
             string command = $"{mkdirCommand} && {ddCommand}";
             terminal.Enter(command);
-            LoadData(directoryPath, breadth, depth - 1, count,blockSize);
+            LoadData(directoryPath, breadth, depth - 1, count, blockSize);
         }
     }
     public void CreateDirectoriesWithFileSize(string basePath, int breadth, int depth, long fileSizeInGB)
@@ -105,9 +118,9 @@ public class SimulatorService
         }
     }
 
-    private int GetNumOfFiles(int breadh,int depth)
+    private long GetNumOfFiles(int breadh,int depth)
     {
-        int numOfDirectories=breadh;
+        long numOfDirectories=breadh;
         while(depth>1)
         {
             numOfDirectories=(numOfDirectories+1)*breadh;

@@ -91,7 +91,7 @@ namespace TrashingService.Simulator
             }
 
 
-            int numOfFiles = GetNumOfFiles(breadth, depth);
+            long numOfFiles = GetNumOfFiles(breadth, depth);
             long sizePerfileInBytes = totalInBytes / numOfFiles;
             Console.WriteLine($"Directories:{numOfFiles + 1}");
             Console.WriteLine($"Files:{numOfFiles}");
@@ -182,9 +182,9 @@ namespace TrashingService.Simulator
 
             CreateFile(directory, fileSizeInBytes, fileExtension);
         }
-        private int GetNumOfFiles(int breadh, int depth)
+        private long GetNumOfFiles(int breadh, int depth)
         {
-            int numOfDirectories = breadh;
+            long numOfDirectories = breadh;
             while (depth > 1)
             {
                 numOfDirectories = (numOfDirectories + 1) * breadh;

@@ -11,7 +11,8 @@ class Program
         TrashingProcessor trashingProcessor = new TrashingProcessor();
         Stopwatch sw = new Stopwatch();
         sw.Start();
-        trashingProcessor.DeleteUsingLs("/home/chintu/Trash2/");
+        // trashingProcessor.DeleteUsingLs("/home/chintu/Trash2/");
+        trashingProcessor.DeleteUsingFind("/home/chintu/test1/");
         sw.Stop();
         Console.WriteLine("Total Time stamp:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
 

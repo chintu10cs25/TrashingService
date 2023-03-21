@@ -144,6 +144,19 @@ public class TrashingProcessor
         }
 
     }
+    public void DeleteUsingFind(string basePath)
+    {
+        long start = 1;
+        long end = 1000;
+        string checkEmpty = $"find {basePath} -maxdepth 0 -empty";
+        string dirctory = terminal.Enter(checkEmpty);
+        while (!string.IsNullOrEmpty(dirctory))
+        {
+            string deleteCommand = $"find {basePath} -type f -o-type d | head -n {end} | tail -n +{start}|xargs rm -rf";
+            string output = terminal.Enter(deleteCommand);
+        }
+      
+    }
     public void DeleteUsingLs(string basePath)
     {
         string output = terminal.Enter("ls -d " + basePath+ "*/");

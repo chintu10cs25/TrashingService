@@ -146,7 +146,7 @@ public class SimulatorService
             }
       
     }
-    public void CreateDirectories(string basePath,int numOfDirectories,int numOfSubdirectories,int numOfFiles,int fileSizeInGB)
+    public void CreateDirectories(string basePath,int numOfDirectories,int numOfSubdirectories,int numOfFiles,int fileSizeInKB)
     {
         IEnumerable<string> directoryList = Enumerable.Range(1, numOfDirectories).Select(num => Path.GetRandomFileName());
         Dictionary<string, List<string>> subdirectoriesByDirectory =directoryList.ToDictionary
@@ -158,21 +158,39 @@ public class SimulatorService
         );
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            string command = string.Join(" && ",
-           directoryList.Select(directory => $"mkdir -p \"{basePath}/{directory}\"")
-           .Concat(subdirectoriesByDirectory.SelectMany(
-               kvp => kvp.Value.Select(subdirectory => $"mkdir -p \"{basePath}/{kvp.Key}/{subdirectory}\"")))
-           .Concat(subdirectoriesByDirectory.SelectMany(
-               kvp => kvp.Value.SelectMany(subdir => Enumerable.Range(1, numOfFiles).Select((i) =>
-               {
-                   string fileName = Path.GetRandomFileName();
-                   string ddCommand = $"dd if=/dev/urandom of=\"{basePath}/{kvp.Key}/{subdir}/{fileName}.txt\" bs=1M count={fileSizeInGB * 1024}";
-                   return ddCommand;
-               }))
-               )));
+           // string command = string.Join(" && ",
+           //directoryList.Select(directory => $"mkdir -p \"{basePath}/{directory}\"")
+           //.Concat(subdirectoriesByDirectory.SelectMany(
+           //    kvp => kvp.Value.Select(subdirectory => $"mkdir -p \"{basePath}/{kvp.Key}/{subdirectory}\"")))
+           //.Concat(subdirectoriesByDirectory.SelectMany(
+           //    kvp => kvp.Value.SelectMany(subdir => Enumerable.Range(1, numOfFiles).Select((i) =>
+           //    {
+           //        string fileName = Path.GetRandomFileName();
+           //        string ddCommand = $"dd if=/dev/urandom of=\"{basePath}/{kvp.Key}/{subdir}/{fileName}.bin\" bs=1B count={fileSizeInKB * 1024}";
+           //        return ddCommand;
+           //    }))
+           //    )));
+            foreach (var directory in subdirectoriesByDirectory)
+            {
+               
+               foreach (var subdirectory in directory.Value)
+                {
+                    string completeDirectory=Path.Combine(basePath, directory.Key, subdirectory);
+                    string mkdirCommand = $"mkdir -p \"{completeDirectory}\"";
+                    terminal.Enter(mkdirCommand);
+                    for (int i = 0; i < numOfFiles; i++)
+                    {
+                        string fileName = Path.GetRandomFileName();
+                        string filePath = Path.Combine(completeDirectory, fileName);
+                        string ddCommand = $"dd if=/dev/urandom of=\"{filePath}.bin\" bs=1B count={fileSizeInKB * 1024}";
+                        terminal.Enter(ddCommand);
+                    }
+                }
+            }
+            
 
             //WriteDirectoriesToConsole(subdirectoriesByDirectory); 
-            terminal.Enter(command);
+            //terminal.Enter(command);
         }      
     }
     public void CreateDirectoriesWithPayloadUsingCP(string basePath,string payLoadPath,string prefix,int directories,int subdirectories)

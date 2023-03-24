@@ -141,18 +141,75 @@ public class TrashingProcessor
         }
 
     }
-    public void DeleteUsingFind(string basePath)
+    public void ThrottlingInBatches(string basePath, string workingDirectory)
     {
+        long batchsize = 10000;
         long start = 1;
-        long end = 1000;
+        long end = batchsize;
         string checkEmpty = $"find {basePath} -maxdepth 0 -empty";
         string dirctory = terminal.Enter(checkEmpty);
-        while (!string.IsNullOrEmpty(dirctory))
+
+        while (string.IsNullOrEmpty(dirctory))
         {
-            string deleteCommand = $"find {basePath} -type f -o-type d | head -n {end} | tail -n +{start}|xargs rm -rf";
-            string output = terminal.Enter(deleteCommand);
+            //string deleteCommand = $"find {basePath} -type f | head -n {end} | tail -n +{start}";
+            //string deleteCommand = $"find {basePath} -type f -o-type d | head -n {end} | tail -n +{start}|xargs rm -rf";
+
+            // use the start and end values to generate the delete command
+            string fileName = $"{start}-{end}.txt";
+            //string batchingCmd = $"find {basePath} -type f | xargs -n 1 | head -n {end} | tail -n +{start} > {fileName}";
+            string batchingCmd = $"find {basePath} -type f | head -n {end} | tail -n +{start} > {fileName}";
+            terminal.Enter(batchingCmd);
+
+            // increment the start and end values by batchsize
+            start += batchsize;
+            end += batchsize;
         }
       
+    }
+    public void DeleteInBatches(string workingDirectory)
+    {
+        //string fileToDelete = $"/home/chintu/BatchesIn10K/1-10000.txt";
+        //string rmCmd = $"xargs -P 4 rm -vf < {fileToDelete}";
+
+        //terminal.Enter(rmCmd);
+
+
+        string scriptPath = $"/home/chintu/deletionProcess.sh";
+
+        terminal.RunBashScript(workingDirectory, scriptPath);
+
+
+        //string deleteCommand = $"xargs rm < /home/chintu/TestBatchDeletion/3-4.txt";
+        //terminal.Enter(deleteCommand);
+
+
+        // create a new process
+        //Process process = new Process();
+
+        //// specify the bash executable as the process to start
+        //process.StartInfo.FileName = "/bin/bash";
+
+        //// pass the path to your bash script as an argument
+        //process.StartInfo.Arguments = cmd;
+
+        //// set the working directory for the process
+        //process.StartInfo.WorkingDirectory = "/home/chintu/TestBatchDeletion/";
+
+        //// redirect the output of the process to the console
+        //process.StartInfo.RedirectStandardOutput = true;
+
+        //// start the process
+        //process.Start();
+
+        //// read the output of the process
+        //string output = process.StandardOutput.ReadToEnd();
+
+        //// wait for the process to exit
+        //process.WaitForExit();
+
+        //// print the output to the console
+        //Console.WriteLine(output);
+
     }
     public void DeleteUsingLs(string basePath)
     {

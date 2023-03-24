@@ -12,9 +12,17 @@ class Program
         Stopwatch sw = new Stopwatch();
         sw.Start();
         // trashingProcessor.DeleteUsingLs("/home/chintu/Trash2/");
-        trashingProcessor.DeleteUsingFind("/home/chintu/test1/");
+        //trashingProcessor.DeleteUsingFind("/home/chintu/Trash/");
+        string workingDirectory = "/home/chintu/BatchesIn10K/";
+
+        trashingProcessor.ThrottlingInBatches("/home/chintu/Trash/", workingDirectory);
         sw.Stop();
-        Console.WriteLine("Total Time stamp:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
+        Console.WriteLine("Total Time stamp for throttling:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
+        sw.Restart();
+        trashingProcessor.DeleteInBatches(workingDirectory);
+        sw.Stop();
+
+        Console.WriteLine("Total Time stamp for deletion:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
 
         //try
         //{
@@ -40,7 +48,7 @@ class Program
             Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
             Console.WriteLine("Or If you want to exit then enter exit");
             //string instruction = Console.ReadLine();
-            string instruction = "/home/chintu/Trash 6 8 200";
+            string instruction = "/mnt/d/Trash_1 1 1 10000 1";
             if (instruction.Trim().ToUpperInvariant() == "EXIT")
             {
                 Environment.Exit(0);

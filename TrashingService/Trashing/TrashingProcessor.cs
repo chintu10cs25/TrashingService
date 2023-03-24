@@ -3,14 +3,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using TrashingService.Common;
+using static System.Net.WebRequestMethods;
 
 namespace TrashingService;
 public class TrashingProcessor
 {
     private Terminal terminal;
+    private List<string> _files;
     public TrashingProcessor()
     {
         terminal = new Terminal();
+        _files = new List<string>();
     }
     public void Strat()
     {
@@ -216,6 +219,7 @@ public class TrashingProcessor
         string output = terminal.Enter("ls -d " + basePath+ "*/");
         if (string.IsNullOrWhiteSpace(output))
         {
+            string fileoutput = terminal.Enter("ls -f " + basePath);
             //delete files from directory which won't have subdirctories
             terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
         }

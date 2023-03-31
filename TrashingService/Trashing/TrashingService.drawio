@@ -1,0 +1,96 @@
+<mxfile host="app.diagrams.net" modified="2023-03-31T15:03:05.354Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="ZPBhdvi-ACHK48qui5Zg" version="21.1.2" type="github">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
+    <mxGraphModel dx="880" dy="1653" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="3tZebW2yL0NTeM2Al_U9-27" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="-1050" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-27" value="Start" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="310" y="-1000" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-45" value="" style="edgeStyle=orthogonalEdgeStyle;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startArrow=none;endArrow=none;rounded=0;targetPortConstraint=eastwest;sourcePortConstraint=northsouth;curved=0;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="3tZebW2yL0NTeM2Al_U9-88" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="-920" as="sourcePoint" />
+            <mxPoint x="350" y="-850" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-46" value="" style="edgeStyle=orthogonalEdgeStyle;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startArrow=none;endArrow=none;rounded=0;targetPortConstraint=eastwest;sourcePortConstraint=northsouth;curved=0;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="3tZebW2yL0NTeM2Al_U9-27" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="360" y="-920" as="sourcePoint" />
+            <mxPoint x="400" y="-850" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="360" y="-850" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-87" value="Deleting files and directories in batches" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="400" y="-880" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-88" value="Listing and throttling in batches&amp;nbsp;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="200" y="-880" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-92" value="Working Directory(List of&amp;nbsp; Batches)" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="260" y="-710" width="240" height="176" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-93" value="1-1000.txt" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="3tZebW2yL0NTeM2Al_U9-92" vertex="1">
+          <mxGeometry y="26" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-94" value="1001-2000.txt" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="3tZebW2yL0NTeM2Al_U9-92" vertex="1">
+          <mxGeometry y="52" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-95" value="2001-3000.txt" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="3tZebW2yL0NTeM2Al_U9-92" vertex="1">
+          <mxGeometry y="78" width="240" height="72" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-97" value="......" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="3tZebW2yL0NTeM2Al_U9-92" vertex="1">
+          <mxGeometry y="150" width="240" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-96" value="Thread1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="225" y="-920" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-101" value="" style="html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;noEdgeStyle=1;orthogonal=1;entryX=0.438;entryY=-0.017;entryDx=0;entryDy=0;entryPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="S4s_6eEpdWKWXaanI9Ue-1" target="3tZebW2yL0NTeM2Al_U9-92" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="258" y="-820" as="sourcePoint" />
+            <mxPoint x="300" y="-768" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-102" value="" style="curved=1;endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="3tZebW2yL0NTeM2Al_U9-87" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="-710" as="sourcePoint" />
+            <mxPoint x="420" y="-760" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="420" y="-710" />
+              <mxPoint x="370" y="-760" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="3tZebW2yL0NTeM2Al_U9-127" value="Trashing&lt;br style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;text-align: left;&quot;&gt;Service/Deletion Process&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="290" y="-1090" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="S4s_6eEpdWKWXaanI9Ue-2" value="" style="html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;noEdgeStyle=1;orthogonal=1;entryX=0.438;entryY=-0.017;entryDx=0;entryDy=0;entryPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="S4s_6eEpdWKWXaanI9Ue-1" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="258" y="-820" as="sourcePoint" />
+            <mxPoint x="365" y="-713" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="257.5" y="-808" />
+              <mxPoint x="300" y="-782" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S4s_6eEpdWKWXaanI9Ue-1" value="batching.sh" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;html=1;container=1;expand=0;collapsible=0;taskMarker=script;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="260" y="-790" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="S4s_6eEpdWKWXaanI9Ue-3" value="deletion.sh" style="points=[[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0.25,0],[1,0.5,0],[1,0.75,0],[0.75,1,0],[0.5,1,0],[0.25,1,0],[0,0.75,0],[0,0.5,0],[0,0.25,0]];shape=mxgraph.bpmn.task;whiteSpace=wrap;rectStyle=rounded;size=10;html=1;container=1;expand=0;collapsible=0;taskMarker=script;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="380" y="-790" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="S4s_6eEpdWKWXaanI9Ue-4" value="Thread2" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="410" y="-920" width="70" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

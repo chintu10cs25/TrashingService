@@ -8,4 +8,15 @@
     <Platforms>AnyCPU;ARM64;x64</Platforms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Trashing\Script_RnD\**" />
+    <EmbeddedResource Remove="Trashing\Script_RnD\**" />
+    <None Remove="Trashing\Script_RnD\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Simulator\Tree.cs" />
+    <Compile Remove="Simulator\TreeNode.cs" />
+  </ItemGroup>
+
 </Project>

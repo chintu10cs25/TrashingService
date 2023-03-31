@@ -9,38 +9,18 @@ namespace TrashingService;
 public class TrashingProcessor
 {
     private Terminal terminal;
-    private List<string> _files;
+
     public TrashingProcessor()
     {
         terminal = new Terminal();
-        _files = new List<string>();
     }
-    public void Strat()
+    public void Strat(string[] args)
     {
-        Console.WriteLine("Trashing Started");
-        string path = "/home/chintu/Repos/minio-dotnet";  
-        var directories = Directory.EnumerateDirectories(path);
-        foreach(var dir in directories)
-        {
-            Console.WriteLine(dir);
-        }
-        try
-        {
-            Random random = new Random();
-            //string directoryPath = "/home/chintu/minio-dotnet";           
-            string rmCommand = "rm -r /home/chintu/minio-dotnet";
-            //string findCommand = "find /home/chintu/minio-dotnet -type f -delete"; // to delete all the files
-            string findCommand = "find /home/chintu/htg -delete"; //delete all the files and folders
-            string mkdir = "mkdir test";
-            RunCommand(mkdir);
-        }
-        catch (Exception exception)
-        {
+        // Get the inputs
+        // Create two threads BatchinhThread and DeletionThread
+        // Execute batching.sh on BatchingThread and deletion.sh on DeletionThread
 
-        }
-       
     }
-
     static void RunCommand(string command)
     {
         Process process = new Process();
@@ -59,7 +39,6 @@ public class TrashingProcessor
             Console.WriteLine(output);
         }
     }
-
     public static void DeleteProcess(string basePath)
     {
         // Set the maximum system load threshold
@@ -160,7 +139,8 @@ public class TrashingProcessor
             // use the start and end values to generate the delete command
             string fileName = $"{start}-{end}.txt";
             //string batchingCmd = $"find {basePath} -type f | xargs -n 1 | head -n {end} | tail -n +{start} > {fileName}";
-            string batchingCmd = $"find {basePath} -type f | head -n {end} | tail -n +{start} > {fileName}";
+             string batchingCmd = $"find {basePath} -type f | head -n {end} | tail -n +{start} > {fileName}";
+            //string batchingCmd = $"find {basePath} -type f -mindepth 1 -maxdepth 5| > {fileName}";
             terminal.Enter(batchingCmd);
 
             // increment the start and end values by batchsize
@@ -216,12 +196,16 @@ public class TrashingProcessor
     }
     public void DeleteUsingLs(string basePath)
     {
-        string output = terminal.Enter("ls -d " + basePath+ "*/");
+        string lsCommand = $"/bin/ls -d {basePath}*/";
+        string output = terminal.EnterCmd(lsCommand);
         if (string.IsNullOrWhiteSpace(output))
         {
-            string fileoutput = terminal.Enter("ls -f " + basePath);
+            //string fileoutput = terminal.EnterCmd("/bin/ls -f " + basePath);
             //delete files from directory which won't have subdirctories
-            terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
+            //use rm command instead of find and delete
+            //terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
+            string rm = $"rm -rf {basePath}";
+            terminal.EnterCmd(rm);
         }
         else
         {            
@@ -232,7 +216,9 @@ public class TrashingProcessor
                 DeleteUsingLs(path);
             }
             //delete files after clearing the subdirectories
-            terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
+            //terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
+            string rm = $"rm -rf {basePath}";
+            terminal.EnterCmd(rm);
         }
     }
 }

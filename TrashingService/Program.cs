@@ -9,7 +9,7 @@ class Program
     static void Main(string[] args)
     {
         TrashingProcessor trashingProcessor = new TrashingProcessor();
-        trashingProcessor.Strat(args);
+        trashingProcessor.Start(args);
 
 
 

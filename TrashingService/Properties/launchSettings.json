@@ -13,6 +13,11 @@
       "commandName": "WSL2",
       "commandLineArgs": "/home/chintu/Trash1\r\n10\r\n20\r\n200",
       "workingDirectory": "C:\\Users\\Chintu\\Repos\\TrashingService"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "/home/chintu/Trash_Batching/Trash/\r\n/home/chintu/Batch/\r\n10000\r\n1",
+      "workingDirectory": "C:\\Users\\Chintu\\Repos\\TrashingService"
     }
   }
 }

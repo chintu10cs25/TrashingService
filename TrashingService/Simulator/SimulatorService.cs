@@ -130,22 +130,22 @@ public class SimulatorService
         return numOfDirectories;
     }
 
-    public void BuildTreee(TreeNode<string> treeNode,int breadth,int depth)
-    {
+    //public void BuildTreee(TreeNode<string> treeNode,int breadth,int depth)
+    //{
         
-            IEnumerable<string> folders = Enumerable.Range(1, breadth).Select(num => Path.GetRandomFileName());
-            foreach(string folder in folders)
-            {
-                int updatedDepth=depth;
-                TreeNode<string> breadthTreeNode = new TreeNode<string>(folder);
-                while(updatedDepth>0)
-                {
-                    BuildTreee(breadthTreeNode,breadth,--updatedDepth);
-                }
-                treeNode.AddChild(breadthTreeNode);
-            }
+    //        IEnumerable<string> folders = Enumerable.Range(1, breadth).Select(num => Path.GetRandomFileName());
+    //        foreach(string folder in folders)
+    //        {
+    //            int updatedDepth=depth;
+    //            TreeNode<string> breadthTreeNode = new TreeNode<string>(folder);
+    //            while(updatedDepth>0)
+    //            {
+    //                BuildTreee(breadthTreeNode,breadth,--updatedDepth);
+    //            }
+    //            treeNode.AddChild(breadthTreeNode);
+    //        }
       
-    }
+    //}
     public void CreateDirectories(string basePath,int numOfDirectories,int numOfSubdirectories,int numOfFiles,int fileSizeInKB)
     {
         IEnumerable<string> directoryList = Enumerable.Range(1, numOfDirectories).Select(num => Path.GetRandomFileName());

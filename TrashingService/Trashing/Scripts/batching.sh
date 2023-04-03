@@ -16,6 +16,7 @@ end="$batchsize"
 declare -g fileBatchingCompletion=false
 declare -g directoryBatchingCompletion=false
 
+cd "$trashingDirectory"
 # Function to create batch files
 function create_batch() {
   local start=$1
@@ -24,17 +25,10 @@ function create_batch() {
   local batchingDirectory=$4
   local batchingOption=$5
 
-  #local batch="$batchingDirectory$batchingOption${start}-${end}.txt"
-   local batch="$batchingDirectory${batchingOption}_Directory/${start}-${end}.txt"
-#    echo > "$batch"
-  # Lock file
-#   exec 200>"$batch"
-#   flock -n 200 || exit 1
+  local batch="$batchingDirectory${batchingOption}_Directory/${start}-${end}.txt"
+
   # Find files/directories of specified type and write to batch file
   find "$trashingDirectory" -type "$batchingOption" | head -n "$end" | tail -n +"$start" > "$batch"
-
-  # Unlock file
-#   flock -u 200
 
   # Check if batch file was created and has content
   if [ -f "$batch" ]; then
@@ -43,9 +37,9 @@ function create_batch() {
     else
       rm "$batch"
       if [ "$batchingOption" == "f" ]; then
-        "$fileBatchingCompletion"=true
+        fileBatchingCompletion=true
         else
-        "$directoryBatchingCompletion"=true
+        directoryBatchingCompletion=true
       fi
     fi
   else
@@ -61,9 +55,11 @@ while [ -n "$(find "$trashingDirectory" -maxdepth 1 -type d -o -type f )" ]; do
     if [ "$directoryBatchingCompletion" = false ];then
         create_batch "$start" "$end" "$trashingDirectory" "$batchingDirectory" "d"
     fi
+ 
+    if [ "$fileBatchingCompletion" = true ] && [ "$directoryBatchingCompletion" = true ]; then
+       exit 0
+    fi
 
     start=$((start + batchsize))
     end=$((end + batchsize))
 done
-
-

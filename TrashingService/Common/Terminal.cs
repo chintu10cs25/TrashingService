@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Text;
+
 namespace TrashingService.Common;
 public class Terminal
 {
@@ -68,6 +70,10 @@ public class Terminal
     }
     public void RunBashScript(string workingDirectory,string scriptPath)
     {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
         // pass the path to your bash script as an argument
         process.StartInfo.Arguments = scriptPath;
 
@@ -81,13 +87,136 @@ public class Terminal
         process.Start();
 
         // read the output of the process
-        string output = process.StandardOutput.ReadToEnd();
+        StreamReader reader = process.StandardOutput;
+
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                // print the output to the console
+                Console.WriteLine(line);
+            }
+        });
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = process.StandardError.ReadLine()) != null)
+            {
+                Console.WriteLine("Error output: " + line);
+            }
+        });
 
         // wait for the process to exit
         process.WaitForExit();
 
-        // print the output to the console
-        Console.WriteLine(output);
-
     }
+    public void RunBashScript_old(string workingDirectory, string scriptPath, string trashingDirectory, string batchingDirectory, int batchsize)
+    {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
+        // pass the path to your bash script as an argument
+        process.StartInfo.Arguments = $"{scriptPath} {trashingDirectory} {batchingDirectory} {batchsize}";
+        // set the working directory for the process
+        process.StartInfo.WorkingDirectory = workingDirectory;
+        // redirect the output of the process to the console
+        process.StartInfo.RedirectStandardOutput = true;
+        // redirect the error output of the process to the console
+        process.StartInfo.RedirectStandardError = true;
+        // start the process
+        process.Start();
+        // read the output of the process
+        StreamReader reader = process.StandardOutput;
+
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                // print the output to the console
+                Console.WriteLine(line);
+            }
+        });
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = process.StandardError.ReadLine()) != null)
+            {
+                Console.WriteLine("Error output: " + line);
+            }
+        });
+        // wait for the process to exit
+        process.WaitForExit();
+        
+    }
+    public Process AssignProcessToBashScript(string workingDirectory, params string[] parameters)
+    {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
+        // pass the path to your bash script as an argument
+        string args=string.Join(" ", parameters);
+        process.StartInfo.Arguments = args;
+         //process.StartInfo.Arguments = $"{scriptPath} {batchingDirectory} {trashingDirectory} {deletionOption}";
+         // set the working directory for the process
+         process.StartInfo.WorkingDirectory = workingDirectory;
+        // redirect the output of the process to the console
+        process.StartInfo.RedirectStandardOutput = true;
+        // redirect the error output of the process to the console
+        process.StartInfo.RedirectStandardError = true;
+        //// start the process
+        //process.Start();
+        //// read the output of the process
+        //StreamReader reader = process.StandardOutput;
+
+        //Task.Run(() =>
+        //{
+        //    string line;
+        //    while ((line = reader.ReadLine()) != null)
+        //    {
+        //        // print the output to the console
+        //        Console.WriteLine(line);
+        //    }
+        //});
+        //Task.Run(() =>
+        //{
+        //    string line;
+        //    while ((line = process.StandardError.ReadLine()) != null)
+        //    {
+        //        Console.WriteLine("Error output: " + line);
+        //    }
+        //});
+        //// wait for the process to exit
+        //process.WaitForExit();
+        return process;
+    }
+    public void StartProcess(Process process)
+    {
+        process.Start();
+        StreamReader reader = process.StandardOutput;
+
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                Console.WriteLine(line);
+            }
+        });
+
+        Task.Run(() =>
+        {
+            string line;
+            while ((line = process.StandardError.ReadLine()) != null)
+            {
+                Console.WriteLine("Error output: " + line);
+            }
+        });
+
+        process.WaitForExit();
+    }
+
 }

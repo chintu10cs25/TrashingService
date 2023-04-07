@@ -29,6 +29,16 @@ public class TrashingProcessor
             }
         }
         Task.WaitAll(tasks.Values.ToArray());
+
+        //Delete batch files
+        if (trashDirectories != null)
+        {
+            foreach (var trashDirectory in trashDirectories)
+            {
+                File.Delete(trashDirectory.Value);
+                Console.WriteLine($"{trashDirectory.Value} is deleted");
+            }
+        }
               
     }
     private static void DeletionProcess(string trashingDirectory, string batchFilePath)

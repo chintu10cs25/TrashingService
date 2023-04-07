@@ -1,3 +1,4 @@
+using CliWrap;
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -27,7 +28,8 @@ public class Terminal
         return process.StandardOutput.ReadToEnd();
     }
     public string Enter(string command)
-    {        
+    {
+        
         process.StartInfo.Arguments = $"-c \"{command}\"";
         //process.StartInfo.UseShellExecute = false;
         //process.StartInfo.RedirectStandardOutput = true;
@@ -36,7 +38,7 @@ public class Terminal
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.WorkingDirectory = "/home/chintu/BatchesIn10K/";
+        //process.StartInfo.WorkingDirectory = "/home/chintu/BatchesIn10K/";
 
         process.Start();
         process.WaitForExit();
@@ -47,7 +49,7 @@ public class Terminal
         }
          return  process.StandardOutput.ReadToEnd();
     }
-    public void Enter(string command, string workingDirectory)
+    public string Enter(string command, string workingDirectory)
     {
         process.StartInfo.Arguments = $"-c \"{command}\"";
         //process.StartInfo.UseShellExecute = false;
@@ -66,7 +68,34 @@ public class Terminal
         {
             Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
         }
-        //return process.StandardOutput.ReadToEnd();
+        return process.StandardOutput.ReadToEnd();
+    }
+    public void EnterWithPaaword(string command, string workingDirectory,string password)
+    {
+        string arguments = "";
+        workingDirectory = "/root";
+        ProcessStartInfo psi = new ProcessStartInfo("sudo", $"-S {command} {arguments}");
+        psi.WorkingDirectory = workingDirectory;
+        psi.UseShellExecute = false;
+        psi.RedirectStandardOutput = true;
+        psi.RedirectStandardInput = true;
+
+        Process process = new Process();
+        process.StartInfo = psi;
+        process.Start();
+
+        process.StandardInput.WriteLine(password);
+        process.StandardInput.Flush();
+
+        //string output = process.StandardOutput.ReadToEnd();
+
+        process.WaitForExit();
+        if (process.ExitCode != 0)
+        {
+            Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
+        }
+
+        //Console.WriteLine(output);
     }
     public void RunBashScript(string workingDirectory,string scriptPath)
     {
@@ -167,30 +196,49 @@ public class Terminal
         process.StartInfo.RedirectStandardOutput = true;
         // redirect the error output of the process to the console
         process.StartInfo.RedirectStandardError = true;
-        //// start the process
-        //process.Start();
-        //// read the output of the process
-        //StreamReader reader = process.StandardOutput;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.CreateNoWindow = true;
+        // start the process
+        process.Start();
+        // read the output of the process
+        StreamReader reader = process.StandardOutput;
+
+        int line;
+        while ((line = reader.Read()) != -1)
+        {
+            // print the output to the console
+            Console.Write((char)line);
+        }
+        Console.WriteLine("Stream reader stopped");
 
         //Task.Run(() =>
         //{
-        //    string line;
-        //    while ((line = reader.ReadLine()) != null)
+        //    int line;
+        //    while ((line = reader.Read()) != -1)
         //    {
         //        // print the output to the console
-        //        Console.WriteLine(line);
+        //        Console.Write((char)line);
         //    }
+        //    Console.WriteLine("Stream reader stopped");
         //});
         //Task.Run(() =>
         //{
-        //    string line;
-        //    while ((line = process.StandardError.ReadLine()) != null)
+        //    int line;
+        //    while ((line = process.StandardError.Read()) != -1)
         //    {
-        //        Console.WriteLine("Error output: " + line);
+        //        Console.Write("Error output: " + line);
         //    }
+        //    Console.WriteLine("Error stream reader stopped");
         //});
-        //// wait for the process to exit
-        //process.WaitForExit();
+        //wait for the process to exit
+
+        process.WaitForExit();
+
+        if (process.ExitCode != 0)
+        {
+            Console.WriteLine($"Command failed with exit code {process.ExitCode}: {args}");
+        }
+
         return process;
     }
     public void StartProcess(Process process)
@@ -200,20 +248,22 @@ public class Terminal
 
         Task.Run(() =>
         {
-            string line;
-            while ((line = reader.ReadLine()) != null)
+            int line;
+            while ((line = reader.Read()) != -1)
             {
-                Console.WriteLine(line);
+                Console.Write((char)line);
             }
+            Console.WriteLine("Exiting from stdOutput");
         });
 
         Task.Run(() =>
         {
-            string line;
-            while ((line = process.StandardError.ReadLine()) != null)
+            int line;
+            while ((line = process.StandardError.Read()) != -1)
             {
-                Console.WriteLine("Error output: " + line);
+                Console.Write("Error output: " + (char)line);
             }
+            Console.WriteLine("Exiting from stdErrorOutput");
         });
 
         process.WaitForExit();

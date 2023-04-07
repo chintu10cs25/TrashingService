@@ -19,4 +19,8 @@
     <Compile Remove="Simulator\TreeNode.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.0" />
+  </ItemGroup>
+
 </Project>

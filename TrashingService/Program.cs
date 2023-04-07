@@ -9,13 +9,13 @@ class Program
     static void Main(string[] args)
     {
         TrashingProcessor trashingProcessor = new TrashingProcessor();
-        trashingProcessor.Start(args);
+        trashingProcessor.Start();
 
 
 
         //Stopwatch sw = new Stopwatch();
         //sw.Start();
-        //trashingProcessor.DeleteUsingLs("/home/chintu/Trash/");
+        //trashingProcessor.DeleteUsingLs("/home/chintu/Batch/f_Directory/");
         //sw.Stop();
         //Console.WriteLine("Total Time stamp for deletion:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
 

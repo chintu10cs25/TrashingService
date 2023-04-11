@@ -1,4 +1,5 @@
 using CliWrap;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -6,8 +7,11 @@ using System.Text;
 namespace TrashingService.Common;
 public class Terminal
 {
-    private Process process;
-    public Terminal(){
+    private readonly Process process;
+    private readonly ILogger<Terminal> _logger;
+    public Terminal(ILogger<Terminal> logger)
+    {
+        _logger= logger;
         // create a new process
         process = new Process();
         // specify the bash executable as the process to start
@@ -23,7 +27,7 @@ public class Terminal
 
         if (process.ExitCode != 0)
         {
-            Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
+            _logger.LogError($"Command failed with exit code {process.ExitCode}: {command}");
         }
         return process.StandardOutput.ReadToEnd();
     }
@@ -45,7 +49,7 @@ public class Terminal
 
         if (process.ExitCode != 0)
         {
-            Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
+            _logger.LogError($"Command failed with exit code {process.ExitCode}: {command}");
         }
          return  process.StandardOutput.ReadToEnd();
     }

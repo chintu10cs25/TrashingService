@@ -1,4 +1,5 @@
 
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -12,9 +13,12 @@ public class TrashingProcessor
     private const string W_CREATE_BATCH = "the creation of batch";
     private const string W_FILE_DELETION = "the deletion of files";
     private const string W_DIRECTORY_DELETION = "the deletion of directories";
-
-    public TrashingProcessor()
+    private readonly ILogger<TrashingProcessor> _logger;
+    private readonly Terminal _terminal;
+    public TrashingProcessor(ILogger<TrashingProcessor> logger, Terminal terminal)
     {
+        _logger = logger;
+        _terminal = terminal;
     }
     public void Start()
     {
@@ -32,7 +36,7 @@ public class TrashingProcessor
                     DeletionProcess(trashDirectory.Key, trashDirectory.Value);
                 }, TaskCreationOptions.LongRunning);
 
-                Console.WriteLine($"Deletion process for {trashDirectory.Key} is started on Task:{task.Id}");
+                _logger.LogInformation($"Deletion process for {@trashDirectory.Key} is started on Task:{task.Id}");
                 tasks.Add(trashDirectory.Key, task);
                 //task.Wait();
             }
@@ -44,36 +48,36 @@ public class TrashingProcessor
             foreach (var trashDirectory in trashDirectories)
             {
                 File.Delete(trashDirectory.Value);
-                Console.WriteLine($"{trashDirectory.Value} is deleted");
+                _logger.LogInformation($"{trashDirectory.Value} is deleted");
             }
         }             
     }
-    private static void DeletionProcess(string trashingDirectory, string batchFilePath)
+    private void DeletionProcess(string trashingDirectory, string batchFilePath)
     {
         try
         {
-            
-            Console.WriteLine("Starting deletion process...");
+
+            _logger.LogInformation("Starting deletion process..." );
             CheckAvgLoad(W_CREATE_BATCH,trashingDirectory);
             CreateBatch(trashingDirectory, batchFilePath);
             CheckAvgLoad(W_FILE_DELETION,trashingDirectory);
             HashSet<string> directories = ProcessBatch(trashingDirectory ,batchFilePath);
             CheckAvgLoad(W_DIRECTORY_DELETION,trashingDirectory);
             RemoveDirectories(directories, trashingDirectory);
-            Console.WriteLine("Deletion process completed.");
+            _logger.LogInformation("Deletion process completed." );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred while running the deletion process: {ex.Message}");
+            _logger.LogInformation($"An error occurred while running the deletion process: {ex.Message}" );
         }
     }
-
     //List all the files from trashing directory to a batch file
-    private static void CreateBatch(string trashingDirectory,string batchFilePath)
+    private void CreateBatch(string trashingDirectory,string batchFilePath)
     {
         //string trashingDirectory = "/home/chintu/Trash_Batching/Trash/";
         //string batchingDirectory = "/home/chintu/Batch/batch.txt";
-        Console.WriteLine("Started batching process...");
+        
+        _logger.LogInformation("Started batching process" );
         if (string.IsNullOrEmpty(batchFilePath)|| string.IsNullOrEmpty(trashingDirectory))
         {
             return;
@@ -81,17 +85,15 @@ public class TrashingProcessor
 
         string cmd = $"find {trashingDirectory} -type f > {batchFilePath}";
         //string cmd = $"find {trashingDirectory} -type f -delete -printf %h\n > {batchFilePath}";
-        Terminal terminal = new Terminal();
-        terminal.EnterCmd(cmd);
-        Console.WriteLine("Batching process completed");
+        _terminal.EnterCmd(cmd);
+        _logger.LogInformation("Batching process completed" );
     }
-
     //Delete files and extract directory by reading batch file
-    private static HashSet<string> ProcessBatch(string trashingDirectory,string batchFilePath)
+    private HashSet<string> ProcessBatch(string trashingDirectory,string batchFilePath)
     {
+        _logger.LogInformation($"Processing batch file {batchFilePath} and started file deletion from {trashingDirectory}" );
         // Create a set to store the unique lines
         HashSet<string> directories = new HashSet<string>();
-        Console.WriteLine($"Processing batch file {batchFilePath} and started file deletion from {trashingDirectory}...");
         //string filePath = "/home/chintu/Batch/f_Directory/test.txt";
 
         using (FileStream stream = new FileStream(batchFilePath, FileMode.Open, FileAccess.Read))
@@ -118,13 +120,13 @@ public class TrashingProcessor
             }
         }
 
-        Console.WriteLine($"Batch file {batchFilePath} is processed and File deletion from {trashingDirectory} is completed...");
+        _logger.LogInformation($"Batch file {batchFilePath} is processed and File deletion from {trashingDirectory} is completed" );
         return directories;
     }
     //Remove empty directories
-    private static void RemoveDirectories(HashSet<string> directories,string trashingDirectory)
+    private void RemoveDirectories(HashSet<string> directories,string trashingDirectory)
     {
-        Console.WriteLine($"Started emoving directories from {trashingDirectory}...");
+        _logger.LogInformation($"Started emoving directories from {trashingDirectory}" );
             IEnumerable<string> sortedDirectories = directories
         .Select(dir => (directory: dir, depth: dir.Count(c => c == '/')))
         .OrderByDescending(tuple => tuple.depth)
@@ -138,20 +140,20 @@ public class TrashingProcessor
             }
            
         }
-        Console.WriteLine($"Completed removing directories from {trashingDirectory}...");
+        _logger.LogInformation($"Completed removing directories from {trashingDirectory}" );
     }  
-
     //get dictionary of trashing directory and batchFilePath
-    private static Dictionary<string,string> GetTrashingDirectories()
+    private Dictionary<string,string> GetTrashingDirectories()
     {
+        _logger.LogInformation("Scanning trash directories......");
         Dictionary<string,string> result = new Dictionary<string, string>();
        
         //string lsCommand = $"ls";
         string homePathcmd = $"eval echo ~$USER";
-        Terminal terminal = new Terminal();
-        string homePath = terminal.Enter(homePathcmd).Trim();
+        //erminal terminal = new Terminal();
+        string homePath = _terminal.Enter(homePathcmd).Trim();
         string lsCommand = $"/bin/ls -dm {homePath}/data*/ ";
-        string lsresult=terminal.Enter(lsCommand,$"{homePath}/");
+        string lsresult=_terminal.Enter(lsCommand,$"{homePath}/");
         string[] mainDirectories = lsresult.Split(new char[] { ',' });
         foreach (string directory in mainDirectories) 
         {
@@ -163,26 +165,31 @@ public class TrashingProcessor
                 {
                     string lastFolderName = new DirectoryInfo(trimDir).Name;
                     //string batchFilePath = $"/var/e2/{lastFolderName}_batch.txt";
-                    string batchFilePath = $"{homePath}/Batch/{lastFolderName}_batch.txt";
+                    string batchDir = $"{homePath}/Batch";
+                    if (!Directory.Exists(batchDir))
+                    {
+                        Directory.CreateDirectory(batchDir);
+                    }
+                    string batchFilePath = $"{batchDir}/{lastFolderName}_batch.txt";
                     result.Add(trashDirectory, batchFilePath);
                 }
             }
         }
+        _logger.LogInformation("Scanning trash directories completed.......");
         return result;
     }
-
     //keeps checking and Wait until the system load average falls below the maximum threshold
-    private static void CheckAvgLoad(string process,string trashingDirectory)
+    private void CheckAvgLoad(string process,string trashingDirectory)
     {
         //As a general rule, if your machine has 4 cores and you want to keep some overhead for other processes, you can set the threshold to a value between 3.0 to 4.0
         // Set the maximum system load threshold to the number of processor cores
-        Console.WriteLine($"Checking avg load before starting {process} for {trashingDirectory}");
+        _logger.LogInformation($"Checking avg load before starting {process} for {trashingDirectory}" );
         double maxLoad = Environment.ProcessorCount;
 
         // Get the current system load average 
         string averageLoadCommand = "uptime | awk -F 'load average: ' '{print $2}' | awk -F, '{print $1}'";
-        Terminal terminal = new Terminal();
-        string avgLoadoutput = terminal.Enter(averageLoadCommand);
+
+        string avgLoadoutput = _terminal.Enter(averageLoadCommand);
         if (!double.TryParse(avgLoadoutput, out double avgLoad))
         {
             throw new Exception($"Failed to parse the average load value from the command output: {avgLoadoutput}");
@@ -191,19 +198,18 @@ public class TrashingProcessor
         // Wait until the system load average falls below the maximum threshold
         while (avgLoad >= maxLoad)
         {
-            Console.WriteLine($"System load ({avgLoad}) is greater than or equal to the maximum threshold ({maxLoad}). Waiting for {process} for {trashingDirectory} for 1 minute before checking again...{Task.CurrentId}");
+            _logger.LogInformation($"System load ({avgLoad}) is greater than or equal to the maximum threshold ({maxLoad}). Waiting for {process} for {trashingDirectory} for 1 minute before checking again...{Task.CurrentId}" );
             Thread.Sleep(TimeSpan.FromMinutes(1));
 
-            avgLoadoutput = terminal.Enter(averageLoadCommand);
+            avgLoadoutput = _terminal.Enter(averageLoadCommand);
             if (!double.TryParse(avgLoadoutput, out avgLoad))
             {
                 throw new Exception($"Failed to parse the average load value from the command output: {avgLoadoutput}");
             }
         }
 
-        Console.WriteLine($"System load ({avgLoad}) is below the maximum threshold ({maxLoad}) starting {process} for {trashingDirectory}");
+        _logger.LogInformation($"System load ({avgLoad}) is below the maximum threshold ({maxLoad}) starting {process} for {trashingDirectory}" );
     }
-
     private static void ProcesBatchWatcher()
     {
         string filePath = "/home/chintu/Batch/f_Directory/test.txt";
@@ -237,9 +243,8 @@ public class TrashingProcessor
     }
     public void DeleteUsingLs(string basePath)
     {
-        Terminal terminal = new Terminal();
         string lsCommand = $"/bin/ls -d {basePath}*/";
-        string output = terminal.EnterCmd(lsCommand);
+        string output = _terminal.EnterCmd(lsCommand);
         if (string.IsNullOrWhiteSpace(output))
         {
             //string fileoutput = terminal.EnterCmd("/bin/ls -f " + basePath);
@@ -248,7 +253,7 @@ public class TrashingProcessor
             //terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
             //using rm -rf because it is leaf node and avoiding rm and rmdir to use it unnecessarily
             string rm = $"rm -rf {basePath}";
-            terminal.EnterCmd(rm);
+            _terminal.EnterCmd(rm);
         }
         else
         {
@@ -261,10 +266,9 @@ public class TrashingProcessor
             //delete files after clearing the subdirectories
             //terminal.Enter($"find {basePath} -type f -delete && rm -r {basePath}");
             string rm = $"rm -rf {basePath}";
-            terminal.EnterCmd(rm);
+            _terminal.EnterCmd(rm);
         }
     }
-
     private void DeletionUsingCSharp()
     {
         var blockingCollection = new BlockingCollection<string>();

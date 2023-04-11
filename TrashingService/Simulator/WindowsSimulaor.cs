@@ -16,7 +16,7 @@ namespace TrashingService.Simulator
         private Terminal terminal;
         public WindowsSimulaor() 
         {
-            terminal = new Terminal();
+            //terminal = new Terminal();
         }
         public void CreateDirectories(string basePath, int numOfDirectories, int numOfSubdirectories, int numOfFiles, int fileSizeInGB)
         {

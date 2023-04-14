@@ -132,7 +132,7 @@ public class TrashingProcessor
             else
             {
                 _logger.LogInformation("No non-empty trash directories are currently available for processing. The system will wait for 15 minutes before attempting again.");
-                Task.Delay(15 * 60 * 1000);
+                Thread.Sleep(15 * 60 * 1000);
             }
 
         }

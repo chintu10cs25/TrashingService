@@ -37,6 +37,7 @@ public class TrashingProcessor
         // CreateBatch($"/home/chintu/data1/trash", $"/var/e2/data1_batch.txt");
         //DeletionUsingCSharp();
 
+        ProcessExistingBatch();
         SheduleDeletionProcess();
 
         //Dictionary<string, Task> tasks = new Dictionary<string, Task>();

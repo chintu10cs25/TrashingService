@@ -53,7 +53,7 @@ class Program
               .UseSerilog()
               .ConfigureServices((hostContext, services) =>
               {
-                  services.AddSingleton<Terminal>();
+                  //services.AddSingleton<Terminal>();
                   services.AddSingleton<TrashingProcessor>();
                   services.AddHostedService<TrashingWorker>();
                   

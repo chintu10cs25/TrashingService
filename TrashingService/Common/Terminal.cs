@@ -7,18 +7,22 @@ using System.Text;
 namespace TrashingService.Common;
 public class Terminal
 {
-    private readonly Process process;
+    //private readonly Process process;
     private readonly ILogger<Terminal> _logger;
-    public Terminal(ILogger<Terminal> logger)
+    public Terminal()
     {
-        _logger= logger;
+        //_logger= logger;
         // create a new process
-        process = new Process();
+       // process = new Process();
         // specify the bash executable as the process to start
-        process.StartInfo.FileName = "/bin/bash";
+       // process.StartInfo.FileName = "/bin/bash";
     }
     public string EnterCmd(string command)
     {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
         process.StartInfo.Arguments = $"-c \"{command}\"";
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
@@ -27,13 +31,21 @@ public class Terminal
 
         if (process.ExitCode != 0)
         {
-            _logger.LogError($"Command failed with exit code {process.ExitCode}: {command}");
+           Console.WriteLine($"Command failed with exit code {process.ExitCode}: {command}");
+            string? line;
+            while ((line = process.StandardError.ReadLine()) != null)
+            {
+                Console.WriteLine("Error output: " + line);
+            }
         }
         return process.StandardOutput.ReadToEnd();
     }
     public string Enter(string command)
     {
-        
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
         process.StartInfo.Arguments = $"-c \"{command}\"";
         //process.StartInfo.UseShellExecute = false;
         //process.StartInfo.RedirectStandardOutput = true;
@@ -55,6 +67,10 @@ public class Terminal
     }
     public string Enter(string command, string workingDirectory)
     {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
         process.StartInfo.Arguments = $"-c \"{command}\"";
         //process.StartInfo.UseShellExecute = false;
         //process.StartInfo.RedirectStandardOutput = true;
@@ -76,6 +92,10 @@ public class Terminal
     }
     public void EnterWithPaaword(string command, string workingDirectory,string password)
     {
+        // create a new process
+        Process process = new Process();
+        // specify the bash executable as the process to start
+        process.StartInfo.FileName = "/bin/bash";
         string arguments = "";
         workingDirectory = "/root";
         ProcessStartInfo psi = new ProcessStartInfo("sudo", $"-S {command} {arguments}");
@@ -84,7 +104,7 @@ public class Terminal
         psi.RedirectStandardOutput = true;
         psi.RedirectStandardInput = true;
 
-        Process process = new Process();
+        process = new Process();
         process.StartInfo = psi;
         process.Start();
 

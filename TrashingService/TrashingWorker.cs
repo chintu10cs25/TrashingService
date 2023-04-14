@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TrashingService
 {
@@ -22,8 +17,8 @@ namespace TrashingService
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
-                _processor.Start();
+                //await Task.Delay(1*60*1000, stoppingToken);
+                 await _processor.StartASync();
             }
         }
     }

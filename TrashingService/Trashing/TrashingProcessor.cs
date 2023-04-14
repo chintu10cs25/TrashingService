@@ -8,6 +8,12 @@ using System.Threading;
 using TrashingService.Common;
 
 namespace TrashingService;
+
+enum ProcessStatus
+{
+    Starting,
+    Running
+}
 public class TrashingProcessor
 {
     //private const string W_TASK = "the Task to assign deletion process";
@@ -16,25 +22,80 @@ public class TrashingProcessor
     private const string W_FILE_DELETION = "the deletion of files";
     private const string W_DIRECTORY_DELETION = "the deletion of directories";
     private readonly ILogger<TrashingProcessor> _logger;
-    private readonly Terminal _terminal;
-    public TrashingProcessor(ILogger<TrashingProcessor> logger, Terminal terminal)
+    private  Terminal _terminal;
+    public TrashingProcessor(ILogger<TrashingProcessor> logger)
     {
         _logger = logger;
-        _terminal = terminal;
+        //_terminal = terminal;
     }
     public void Start()
     {
+        Thread.Sleep(1*60*1000);
+    }
+    public async Task StartASync()
+    {
         // CreateBatch($"/home/chintu/data1/trash", $"/var/e2/data1_batch.txt");
         //DeletionUsingCSharp();
-        Dictionary<string,Task> tasks = new Dictionary<string,Task>();
+
+        SheduleDeletionProcess();
+
+        //Dictionary<string, Task> tasks = new Dictionary<string, Task>();
+        //Dictionary<string, string> trashDirectories = GetNoneEmptyTrashingDirectories();
+        //if (trashDirectories != null && trashDirectories.Count > 0)
+        //{
+        //    // Start all deletion processes simultaneously
+        //    foreach (var trashDirectory in trashDirectories)
+        //    {
+        //        CheckAvgLoad(W_DELETION_PROCESS, trashDirectory.Key);
+        //        var task = Task.Factory.StartNew(() =>
+        //        {
+        //            DeletionProcess(trashDirectory.Key, trashDirectory.Value);
+        //        }, TaskCreationOptions.LongRunning);
+
+        //        _logger.LogInformation($"Deletion process for {trashDirectory.Key} is started on Task:{task.Id}");
+
+        //        tasks.Add(trashDirectory.Key, task);
+        //        //task.Wait();
+        //    }
+
+        //    // Wait for all deletion processes to complete
+        //     Task.WaitAll(tasks.Values.ToArray());
+
+        //    //Delete batch files
+        //    if (trashDirectories != null)
+        //    {
+        //        foreach (var trashDirectory in trashDirectories)
+        //        {
+        //            File.Delete(trashDirectory.Value);
+        //            _logger.LogInformation($"{trashDirectory.Value} is deleted");
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    _logger.LogInformation("No non-empty trash directories are currently available for processing. The system will wait for 15 minutes before attempting again.");
+        //    await Task.Delay(15 * 60 * 1000);
+        //}
+    }
+    private void ProcessExistingBatch()
+    {
+        //Check existing batch to process from previous run
+        Dictionary<string, Task> tasks = new Dictionary<string, Task>();
         Dictionary<string, string> trashDirectories = GetNoneEmptyTrashingDirectories();
         if (trashDirectories != null && trashDirectories.Count > 0)
         {
+            // Start all deletion processes simultaneously
             foreach (var trashDirectory in trashDirectories)
             {
-                CheckAvgLoad(W_DELETION_PROCESS, trashDirectory.Key);
                 var task = Task.Factory.StartNew(() =>
                 {
+                    if (File.Exists(trashDirectory.Value))
+                    {
+                        RemoveFilesAndListDiectores(trashDirectory.Key, trashDirectory.Value);
+                        HashSet<string> directories = RemoveFilesAndListDiectores(trashDirectory.Key, trashDirectory.Value);
+                        CheckAvgLoad(W_DIRECTORY_DELETION, trashDirectory.Key);
+                        RemoveDirectories(directories, trashDirectory.Key);
+                    }
                     DeletionProcess(trashDirectory.Key, trashDirectory.Value);
                 }, TaskCreationOptions.LongRunning);
 
@@ -44,77 +105,119 @@ public class TrashingProcessor
                 //task.Wait();
             }
 
+            // Wait for all deletion processes to complete
             Task.WaitAll(tasks.Values.ToArray());
-            //Delete batch files
-            if (trashDirectories != null)
+
+            foreach (var trashDirectory in trashDirectories)
             {
-                foreach (var trashDirectory in trashDirectories)
+                if (File.Exists(trashDirectory.Value))
                 {
                     File.Delete(trashDirectory.Value);
                     _logger.LogInformation($"{trashDirectory.Value} is deleted");
-                }
+                }               
             }
         }
-        else
-        {
-            _logger.LogInformation("No non-empty trash directories are currently available for processing. The system will wait for 15 minutes before attempting again.");
-            Thread.Sleep(15 * 60 * 1000);
-        }
-                  
     }
     private void DeletionProcess(string trashingDirectory, string batchFilePath)
     {
+    //    try
+    //    {
+
+    //        _logger.LogInformation("Deletion process started ..." );
+    //        CheckAvgLoad(W_CREATE_BATCH,trashingDirectory);
+    //        ListFiles(trashingDirectory, batchFilePath);
+    //        CheckAvgLoad(W_FILE_DELETION,trashingDirectory);
+    //        HashSet<string> directories = RemoveFilesAndListDiectores(trashingDirectory ,batchFilePath);
+    //        CheckAvgLoad(W_DIRECTORY_DELETION,trashingDirectory);
+    //        RemoveDirectories(directories, trashingDirectory);
+    //        _logger.LogInformation("Deletion process completed..." );
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogInformation($"An error occurred while running the deletion process: {ex.Message}" );
+    //    }
+    }
+    private void SheduleDeletionProcess()
+    {
         try
         {
+            _logger.LogInformation("Task sheduling started ...");
+            Dictionary<string, Task> tasks = new Dictionary<string, Task>();
+            Dictionary<string, string> trashDirectories = GetNoneEmptyTrashingDirectories();
+            if (trashDirectories != null && trashDirectories.Count > 0)
+            {
+                // Start all deletion processes simultaneously
+                foreach (var trashDirectory in trashDirectories)
+                {
+                    //CheckAvgLoad(W_DELETION_PROCESS, trashDirectory.Key);
+                    var task = Task.Factory.StartNew(() =>
+                    {
+                        CheckAvgLoad(W_CREATE_BATCH, trashDirectory.Key,ProcessStatus.Starting);
+                        ListFiles(trashDirectory.Key, trashDirectory.Value);
+                        CheckAvgLoad(W_FILE_DELETION, trashDirectory.Key, ProcessStatus.Starting);
+                        HashSet<string> directories = RemoveFilesAndListDiectores(trashDirectory.Key, trashDirectory.Value);
+                        CheckAvgLoad(W_DIRECTORY_DELETION, trashDirectory.Key, ProcessStatus.Starting);
+                        RemoveDirectories(directories, trashDirectory.Key);
+                    }, TaskCreationOptions.LongRunning);
 
-            _logger.LogInformation("Deletion process started ..." );
-            CheckAvgLoad(W_CREATE_BATCH,trashingDirectory);
-            ListFiles(trashingDirectory, batchFilePath);
-            CheckAvgLoad(W_FILE_DELETION,trashingDirectory);
-            HashSet<string> directories = RemoveFilesAndListDiectores(trashingDirectory ,batchFilePath);
-            CheckAvgLoad(W_DIRECTORY_DELETION,trashingDirectory);
-            RemoveDirectories(directories, trashingDirectory);
-            _logger.LogInformation("Deletion process completed..." );
+                    _logger.LogInformation($"Deletion process for {trashDirectory.Key} is started on Task:{task.Id}");
+
+                    tasks.Add(trashDirectory.Key, task);
+                    //task.Wait();
+                }
+                _logger.LogInformation("Task sheduling completed");
+                _logger.LogInformation("Waiting for all deletion processes tasks to be completed..");
+                // Wait for all deletion processes to complete
+                Task.WaitAll(tasks.Values.ToArray());
+                foreach (var task in tasks)
+                {
+                    _logger.LogInformation($"Deletion process for {task.Key} is completed on Task:{task.Value.Id}");
+                }
+                //Delete batch files
+                if (trashDirectories != null)
+                {
+                    foreach (var trashDirectory in trashDirectories)
+                    {
+                        File.Delete(trashDirectory.Value);
+                        _logger.LogInformation($"{trashDirectory.Value} is deleted");
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No non-empty trash directories are currently available for processing. The system will wait for 15 minutes before attempting again.");
+                Task.Delay(15 * 60 * 1000);
+            }
+
         }
         catch (Exception ex)
         {
-            _logger.LogInformation($"An error occurred while running the deletion process: {ex.Message}" );
+            _logger.LogInformation($"An error occurred while running the deletion process: {ex.Message}");
         }
     }
     //List all the files from trashing directory to a batch file
-    private async void ListFiles(string trashingDirectory,string batchFilePath)
+    private void  ListFiles(string trashingDirectory,string batchFilePath)
     {
         //string trashingDirectory = "/home/chintu/Trash_Batching/Trash/";
         //string batchingDirectory = "/home/chintu/Batch/batch.txt";
         
-        _logger.LogInformation("Started listing files......" );
+        _logger.LogInformation($"Started listing files from {trashingDirectory} to {batchFilePath}......" );
         if (string.IsNullOrEmpty(batchFilePath)|| string.IsNullOrEmpty(trashingDirectory))
         {
             return;
         }
 
-        //var result =  Cli.Wrap("find")
-        //.WithArguments($"{trashingDirectory} -type f > {batchFilePath}")
-        //.ExecuteAsync();
+
         string cmd = $"find {trashingDirectory} -type f > {batchFilePath}";
         ////string cmd = $"find {trashingDirectory} -type f -delete -printf %h\n > {batchFilePath}";
-        //_terminal.EnterCmd(cmd);
-       
+        Terminal terminal = new Terminal();
+        terminal.EnterCmd(cmd);
 
-        var result = await Cli.Wrap("/bin/bash")
-                    .WithArguments($"-c \"{cmd}\"")
-                    .ExecuteAsync();
+        //var result = Cli.Wrap("/bin/bash")
+        //           .WithArguments($"-c \"{cmd}\"")
+        //           .ExecuteAsync();
 
-        if (result.ExitCode == 0)
-        {
-            Console.WriteLine("Command completed successfully.");
-        }
-        else
-        {
-            Console.WriteLine($"Command {cmd} failed with exit code {result.ExitCode}.");
-        }
-
-        _logger.LogInformation("Listing files completed............." );
+        _logger.LogInformation($"Listing files completed from {trashingDirectory} to {batchFilePath}");
     }
     //Delete files and extract directory by reading batch file
     private HashSet<string> RemoveFilesAndListDiectores(string trashingDirectory,string batchFilePath)
@@ -136,7 +239,7 @@ public class TrashingProcessor
                     //check avgload on every 1 min 
                     if (sw.ElapsedMilliseconds >= 60000)
                     {
-                        CheckAvgLoad(W_FILE_DELETION,trashingDirectory);
+                        CheckAvgLoad(W_FILE_DELETION,trashingDirectory,ProcessStatus.Running);
                         sw.Restart();
                     }
                     //Console.WriteLine(line);
@@ -175,15 +278,29 @@ public class TrashingProcessor
         {
             if (sw.ElapsedMilliseconds >= 1*60*1000)
             {
-                CheckAvgLoad(W_DIRECTORY_DELETION, trashingDirectory);
+                CheckAvgLoad(W_DIRECTORY_DELETION, trashingDirectory, ProcessStatus.Running);
                 sw.Restart();
             }
             if (directory!= trashingDirectory)
             {
-                Directory.Delete(directory);
+                try
+                {
+                    Directory.Delete(directory);
+                }
+                catch(Exception dirExp)
+                {
+                    _logger.LogError($"Deleting {directory} Exception Message:{dirExp.Message}");
+                }
+               
             }
            
         }
+        if(Directory.EnumerateFileSystemEntries(trashingDirectory,"*", SearchOption.TopDirectoryOnly).Count() > 0)
+        {
+            _logger.LogInformation($"Trash directory {trashingDirectory} didn't cleaned completly");
+            DeleteRemainingFilesAndDirectories(trashingDirectory);
+        }
+
         _logger.LogInformation($"Completed removing directories from {trashingDirectory}" );
     }  
     //get dictionary of trashing directory and batchFilePath
@@ -232,36 +349,75 @@ public class TrashingProcessor
     //keeps checking and Wait until the system load average falls below the maximum threshold
     private void CheckAvgLoad(string process,string trashingDirectory)
     {
+        _terminal=new Terminal();
         //As a general rule, if your machine has 4 cores and you want to keep some overhead for other processes, you can set the threshold to a value between 3.0 to 4.0
         // Set the maximum system load threshold to the number of processor cores
         _logger.LogInformation($"Checking avg load before starting {process} for {trashingDirectory}" );
         double maxLoad = Environment.ProcessorCount;
 
         // Get the current system load average 
-        string averageLoadCommand = "uptime | awk -F 'load average: ' '{print $2}' | awk -F, '{print $1}'";
-
-        string avgLoadoutput = _terminal.Enter(averageLoadCommand);
-        if (!double.TryParse(avgLoadoutput, out double avgLoad))
-        {
-            throw new Exception($"Failed to parse the average load value from the command output: {avgLoadoutput}");
-        }
+        double avgLoad = GetAvgLoad();
 
         // Wait until the system load average falls below the maximum threshold
         while (avgLoad >= maxLoad)
         {
-            _logger.LogInformation($"System load ({avgLoad}) is greater than or equal to the maximum threshold ({maxLoad}). Waiting for {process} for {trashingDirectory} for 1 minute before checking again...{Task.CurrentId}" );
+            _logger.LogInformation($"System load ({avgLoad}) is greater than or equal to the maximum threshold ({maxLoad}). Waiting for {process} for {trashingDirectory} for 1 minute before checking again on Task:{Task.CurrentId}" );
             Thread.Sleep(TimeSpan.FromMinutes(1));
-
-            avgLoadoutput = _terminal.Enter(averageLoadCommand);
-            if (!double.TryParse(avgLoadoutput, out avgLoad))
-            {
-                throw new Exception($"Failed to parse the average load value from the command output: {avgLoadoutput}");
-            }
+            avgLoad = GetAvgLoad();
         }
 
         _logger.LogInformation($"System load ({avgLoad}) is below the maximum threshold ({maxLoad}) starting {process} for {trashingDirectory}" );
     }
+    private void CheckAvgLoad(string process, string trashingDirectory,ProcessStatus processStatus)
+    {
+        _terminal = new Terminal();
+        //As a general rule, if your machine has 4 cores and you want to keep some overhead for other processes, you can set the threshold to a value between 3.0 to 4.0
+        // Set the maximum system load threshold to the number of processor cores
+        if(processStatus == ProcessStatus.Starting)
+        {
+            _logger.LogInformation($"Checking avg load before starting {process} for {trashingDirectory}");
+        }
+        else
+        {
+            _logger.LogInformation($"Checking avg load during running {process} for {trashingDirectory}");
+        }
+        
+        double maxLoad = Environment.ProcessorCount;
 
+        // Get the current system load average 
+        double avgLoad = GetAvgLoad();
+
+        // Wait until the system load average falls below the maximum threshold
+        while (avgLoad >= maxLoad)
+        {
+            _logger.LogInformation($"System load ({avgLoad}) is greater than or equal to the maximum threshold ({maxLoad}). Waiting for {process} for {trashingDirectory} for 1 minute before checking again on Task:{Task.CurrentId}");
+            Thread.Sleep(TimeSpan.FromMinutes(1));
+            avgLoad = GetAvgLoad();
+        }
+        if (processStatus == ProcessStatus.Starting)
+        {
+            _logger.LogInformation($"System load ({avgLoad}) is below the maximum threshold ({maxLoad}) starting {process} for {trashingDirectory}");
+        }
+        else
+        {
+            _logger.LogInformation($"System load ({avgLoad}) is below the maximum threshold ({maxLoad}) resuming {process} for {trashingDirectory}");
+        }
+    }
+    private double GetAvgLoad()
+    {
+        _terminal = new Terminal();
+        string averageLoadCommand = "uptime | awk -F 'load average: ' '{print $2}' | awk -F, '{print $1}'";
+        double avgLoad;
+        string avgLoadoutput = _terminal.Enter(averageLoadCommand);
+        if (!double.TryParse(avgLoadoutput, out avgLoad))
+        {
+            _logger.LogError($"Failed to parse the average load value from the command output: {avgLoadoutput}");
+
+            GetAvgLoad();
+        }
+
+        return avgLoad;
+    }
     private bool IsTrashingDirectoryEmpty(string trashingDirectory)
     {
         // Check if the directory is empty
@@ -335,7 +491,7 @@ public class TrashingProcessor
             _terminal.EnterCmd(rm);
         }
     }
-    private void DeletionUsingCSharp()
+    private void DeleteRemainingFilesAndDirectories(string trashDirectory)
     {
         var blockingCollection = new BlockingCollection<string>();
         // Create a set to store the unique lines
@@ -343,9 +499,10 @@ public class TrashingProcessor
         sw.Start();
         long fileCount = 0;
         long directoriesCount= 0;
-       // HashSet<string> directories = new HashSet<string>();
-        Console.WriteLine("Deletion of files Started");
-        Parallel.ForEach(Directory.EnumerateFileSystemEntries($"/home/chintu/data1/trash", "*", SearchOption.AllDirectories), item =>
+        // HashSet<string> directories = new HashSet<string>();
+        //string trashDirectory = $"/home/chintu/data1/trash";
+       _logger.LogInformation($"Files deletion started from {trashDirectory} .......................");
+        Parallel.ForEach(Directory.EnumerateFileSystemEntries(trashDirectory, "*", SearchOption.AllDirectories), item =>
         {
             if (File.Exists(item))
             {
@@ -360,11 +517,12 @@ public class TrashingProcessor
                 directoriesCount++;
             }
         });
-        Console.WriteLine("Deletion of files completed.......................");
+        _logger.LogInformation($"Files deletion completed from {trashDirectory} ..................");
         sw.Stop();
-        Console.WriteLine($"Time stamp:{sw.Elapsed}");
+        _logger.LogInformation($"Time stamp for files deletion:{sw.Elapsed}");
         blockingCollection.CompleteAdding();
-
+        sw.Restart();
+        _logger.LogInformation($"Directories deletion started from {trashDirectory} .......................");
         IEnumerable<string> sortedDirectories = blockingCollection
         .Select(dir => (directory: dir, depth: dir.Count(c => c == '/')))
         .OrderByDescending(tuple => tuple.depth)
@@ -389,7 +547,9 @@ public class TrashingProcessor
         //        Console.WriteLine(item);
 
         //    });
-        Console.WriteLine("Deletion of directories Completed...........");
+        sw.Stop();
+        _logger.LogInformation($"Time stamp for directories deletion:{sw.Elapsed}");
+        _logger.LogInformation($"Directories deletion completed from {trashDirectory} ..................");
 
     }
 }

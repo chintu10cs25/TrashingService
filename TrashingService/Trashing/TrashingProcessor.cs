@@ -227,7 +227,7 @@ public class TrashingProcessor
                 CheckAvgLoad(W_DIRECTORY_DELETION, trashingDirectory, ProcessStatus.Running);
                 sw.Restart();
             }
-            if (directory!= trashingDirectory)
+            if ((trashingDirectory.Length < directory.Length))
             {
                 try
                 {

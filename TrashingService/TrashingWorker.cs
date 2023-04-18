@@ -16,7 +16,7 @@ namespace TrashingService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("Trashing service running at: {time}", DateTimeOffset.Now);
                 //await Task.Delay(1*60*1000, stoppingToken);
                  await _processor.StartASync();
             }

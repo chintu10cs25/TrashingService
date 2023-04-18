@@ -51,6 +51,7 @@ class Program
     public static IHostBuilder CreateHostBuilder(string[] args) =>
           Host.CreateDefaultBuilder(args)
               .UseSerilog()
+              .UseSystemd() // this method used to deploy worker service on linux
               .ConfigureServices((hostContext, services) =>
               {
                   //services.AddSingleton<Terminal>();

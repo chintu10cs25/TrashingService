@@ -10,14 +10,14 @@ namespace TrashingService.Simulator
 {
     internal class SimulatorStarter
     {
-        static void Start(string[] args)
+        public void Start(string[] args)
         {
             if (args.Length == 0)
             {
                 Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
                 Console.WriteLine("Or If you want to exit then enter exit");
-                //string instruction = Console.ReadLine();
-                string instruction = "/mnt/d/Trash_1 1 1 10000 1";
+                string instruction = Console.ReadLine();
+                //string instruction = "/home/chintu/data1/trash 1 1 10000 1";
                 if (instruction.Trim().ToUpperInvariant() == "EXIT")
                 {
                     Environment.Exit(0);

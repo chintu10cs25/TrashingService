@@ -36,7 +36,8 @@ public class TrashingProcessor
     {
 
         //Check existing batch to process from previous run
-        ProcessExistingBatch();
+        //ProcessExistingBatch();
+
         //Run freshly
         SheduleDeletionProcess();
 
@@ -90,15 +91,16 @@ public class TrashingProcessor
             _logger.LogInformation("Task sheduling started ...");
             Dictionary<string, Task> tasks = new Dictionary<string, Task>();
             Dictionary<string, string> trashDirectories = GetNoneEmptyTrashingDirectories();
-            if (trashDirectories != null && trashDirectories.Count > 0)
+            IEnumerable<KeyValuePair<string, string>> trashDirectoriesReadyToShedule = trashDirectories.Where(x=>IsReadyToShedule(x.Key));
+            if (trashDirectoriesReadyToShedule != null && trashDirectoriesReadyToShedule.Any())
             {
                 // Start all deletion processes simultaneously
-                foreach (var trashDirectory in trashDirectories)
+                foreach (var trashDirectory in trashDirectoriesReadyToShedule)
                 {
                     //CheckAvgLoad(W_DELETION_PROCESS, trashDirectory.Key);
                     var task = Task.Factory.StartNew(() =>
                     {
-                        CheckAvgLoad(W_CREATE_BATCH, trashDirectory.Key,ProcessStatus.Starting);
+                        CheckAvgLoad(W_CREATE_BATCH, trashDirectory.Key, ProcessStatus.Starting);
                         ListFiles(trashDirectory.Key, trashDirectory.Value);
                         CheckAvgLoad(W_FILE_DELETION, trashDirectory.Key, ProcessStatus.Starting);
                         HashSet<string> directories = RemoveFilesAndListDiectores(trashDirectory.Key, trashDirectory.Value);
@@ -107,9 +109,7 @@ public class TrashingProcessor
                     }, TaskCreationOptions.LongRunning);
 
                     _logger.LogInformation($"Deletion process for {trashDirectory.Key} is started on Task:{task.Id}");
-
                     tasks.Add(trashDirectory.Key, task);
-                    //task.Wait();
                 }
                 _logger.LogInformation("Task sheduling completed");
                 _logger.LogInformation("Waiting for all deletion processes tasks to be completed..");
@@ -131,7 +131,7 @@ public class TrashingProcessor
             }
             else
             {
-                _logger.LogInformation("No non-empty trash directories are currently available for processing. The system will wait for 15 minutes before attempting again.");
+                _logger.LogInformation("No non-empty trash directories are currently available to shedule for deletion process. The system will wait for 15 minutes before attempting again.");
                 Thread.Sleep(15 * 60 * 1000);
             }
 
@@ -183,14 +183,14 @@ public class TrashingProcessor
                 try
                 {
                     //check avgload on every 1 min 
-                    if (sw.ElapsedMilliseconds >= 60000)
+                    if (sw.ElapsedMilliseconds >= 1*60*1000)
                     {
                         CheckAvgLoad(W_FILE_DELETION,trashingDirectory,ProcessStatus.Running);
                         sw.Restart();
-                    }
-                    //Console.WriteLine(line);
+                    }                 
                    
                     File.Delete(line);
+                    //_logger.LogInformation($"Deleted file {line}");
                     string? directory = Path.GetDirectoryName(line);
                     if (!string.IsNullOrEmpty(directory) && (trashingDirectory.Length < directory.Length))
                     {
@@ -211,6 +211,7 @@ public class TrashingProcessor
     //Remove empty directories
     private void RemoveDirectories(HashSet<string> directories,string trashingDirectory)
     {
+
         _logger.LogInformation($"Started removing directories from {trashingDirectory}" );
 
         IEnumerable<string> sortedDirectories = directories
@@ -232,18 +233,22 @@ public class TrashingProcessor
                 try
                 {
                     Directory.Delete(directory);
+                    //_logger.LogInformation($"Deleted directory {directory}");
                 }
                 catch(Exception dirExp)
                 {
-                    _logger.LogError($"Deleting {directory} Exception Message:{dirExp.Message}");
+                    _logger.LogError(dirExp.Message);
+                    return;
                 }
                
             }
            
         }
+        // handle empty directories
         if(Directory.EnumerateFileSystemEntries(trashingDirectory,"*", SearchOption.TopDirectoryOnly).Count() > 0)
         {
             _logger.LogInformation($"Trash directory {trashingDirectory} didn't cleaned completly");
+
             DeleteRemainingFilesAndDirectories(trashingDirectory);
         }
 
@@ -357,6 +362,20 @@ public class TrashingProcessor
             return false;
         }
     }
+
+    //Check last modified date of trash directory
+    private bool IsReadyToShedule(string trashDirectory)
+    {
+        DirectoryInfo trashDirectoryInfo = new DirectoryInfo(trashDirectory);
+        TimeSpan diff= DateTime.Now - trashDirectoryInfo.LastWriteTime;
+        if(diff.TotalMinutes > 15)
+        {
+            _logger.LogInformation($"Ready to shedule Deletion process for {trashDirectory}");
+            return true;
+        }
+        _logger.LogInformation($"Not ready to shedule Deletion process for {trashDirectory} as currently some other process is accessing it");
+        return false;
+    }
     private static void ProcesBatchWatcher()
     {
         string filePath = "/home/chintu/Batch/f_Directory/test.txt";
@@ -427,54 +446,50 @@ public class TrashingProcessor
         // HashSet<string> directories = new HashSet<string>();
         //string trashDirectory = $"/home/chintu/data1/trash";
        _logger.LogInformation($"Files deletion started from {trashDirectory} .......................");
-        Parallel.ForEach(Directory.EnumerateFileSystemEntries(trashDirectory, "*", SearchOption.AllDirectories), item =>
+        try
         {
-            if (File.Exists(item))
+            Parallel.ForEach(Directory.EnumerateFileSystemEntries(trashDirectory, "*", SearchOption.AllDirectories), item =>
             {
-                File.Delete(item);
-                //Console.WriteLine(item);
-                fileCount++;
-            }
-            else if (Directory.Exists(item))
+                if (File.Exists(item))
+                {
+                    File.Delete(item);
+                    _logger.LogInformation(item);
+                    fileCount++;
+                }
+                else if (Directory.Exists(item))
+                {
+                    blockingCollection.Add(item);
+                    //directories.Add(item);
+                    directoriesCount++;
+                }
+            });
+            _logger.LogInformation($"Files deletion completed from {trashDirectory} ..................");
+            sw.Stop();
+            _logger.LogInformation($"Time stamp for files deletion:{sw.Elapsed}");
+            blockingCollection.CompleteAdding();
+            sw.Restart();
+            _logger.LogInformation($"Directories deletion started from {trashDirectory} .......................");
+            IEnumerable<string> sortedDirectories = blockingCollection
+            .Select(dir => (directory: dir, depth: dir.Count(c => c == '/')))
+            .OrderByDescending(tuple => tuple.depth)
+            .Select(tuple => tuple.directory);
+
+            _logger.LogInformation("Deletion of directories Started...........");
+
+            foreach (var dir in sortedDirectories)
             {
-                blockingCollection.Add(item);
-                //directories.Add(item);
-                directoriesCount++;
+                Directory.Delete(dir);
+                Console.WriteLine(dir);
             }
-        });
-        _logger.LogInformation($"Files deletion completed from {trashDirectory} ..................");
-        sw.Stop();
-        _logger.LogInformation($"Time stamp for files deletion:{sw.Elapsed}");
-        blockingCollection.CompleteAdding();
-        sw.Restart();
-        _logger.LogInformation($"Directories deletion started from {trashDirectory} .......................");
-        IEnumerable<string> sortedDirectories = blockingCollection
-        .Select(dir => (directory: dir, depth: dir.Count(c => c == '/')))
-        .OrderByDescending(tuple => tuple.depth)
-        .Select(tuple => tuple.directory);
 
-        Console.WriteLine("Deletion of directories Started...........");
-
-        foreach (var dir in sortedDirectories)
-        {
-            Directory.Delete(dir);
-            Console.WriteLine(dir);
+            sw.Stop();
+            _logger.LogInformation($"Time stamp for directories deletion:{sw.Elapsed}");
+            _logger.LogInformation($"Directories deletion completed from {trashDirectory} ..................");
         }
-
-        //Parallel.ForEach(blockingCollection
-        //.Select(dir => (directory: dir, depth: dir.Count(c => c == '/')))
-        //.OrderByDescending(tuple => tuple.depth)
-        //.Select(tuple => tuple.directory),
-        //    item =>
-        //    {
-        //        Directory.Delete(item);
-
-        //        Console.WriteLine(item);
-
-        //    });
-        sw.Stop();
-        _logger.LogInformation($"Time stamp for directories deletion:{sw.Elapsed}");
-        _logger.LogInformation($"Directories deletion completed from {trashDirectory} ..................");
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+        }
 
     }
 }

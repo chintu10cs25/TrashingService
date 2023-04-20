@@ -8,7 +8,7 @@ public class SimulatorService
     private Terminal terminal;
     public SimulatorService()
     {
-        terminal = new Terminal();
+        //terminal = new Terminal();
     }
 
     public void CreateDirectories(string basePath,int breadth,int depth,long totalSizeInGB)

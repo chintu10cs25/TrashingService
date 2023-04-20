@@ -1,54 +1,67 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using TrashingService;
+using TrashingService.Common;
 using TrashingService.Simulator;
 
 class Program
 {
     static void Main(string[] args)
     {
-        TrashingProcessor trashingProcessor = new TrashingProcessor();
-        trashingProcessor.Start();
 
+        var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
 
+        string appName = Assembly.GetEntryAssembly().GetName().Name;
+        string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "logs");
+        Directory.CreateDirectory(logDirectory);
 
-        //Stopwatch sw = new Stopwatch();
-        //sw.Start();
-        //trashingProcessor.DeleteUsingLs("/home/chintu/Batch/f_Directory/");
-        //sw.Stop();
-        //Console.WriteLine("Total Time stamp for deletion:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
+        string logPath = Path.Combine(logDirectory, $"{appName}-.log");
 
-        //trashingProcessor.DeleteUsingFind("/home/chintu/Trash/");
-        //string workingDirectory = "/home/chintu/BatchesIn10K/";
+        Log.Logger = new LoggerConfiguration()
+             .ReadFrom.Configuration(configuration)
+             .WriteTo.File(
+                 path: logPath,
+                 rollingInterval: RollingInterval.Day,
+                 retainedFileCountLimit: 7,
+                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {Message}{NewLine}{Exception}")
+             .CreateLogger();
 
-        //trashingProcessor.ThrottlingInBatches("/home/chintu/Trash/", workingDirectory);
-        //sw.Stop();
-        //Console.WriteLine("Total Time stamp for throttling:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
-        //sw.Restart();
-        //trashingProcessor.DeleteInBatches(workingDirectory);
-        //sw.Stop();
-
-        //Console.WriteLine("Total Time stamp for deletion:" + sw.Elapsed + "In millisecond:" + sw.ElapsedMilliseconds);
-
-        //try
-        //{
-        //    if (args.Length == 0)
-        //    {
-        //        Console.WriteLine("Please enter basePath,numOfDirectories,numOfSubdirectories,numOfFiles and sizeOfileInGB separated by space eg: /home/chintu/Trash 3 4 5 1 or enter basePath,breadth,depth and totalSizeinGB e.g:/home/chintu/Trash3 3 4 5");
-        //        Console.WriteLine("Or If you want to exit then enter exit");
-        //    }
-        //    Start(args);
-        //}
-        //catch (Exception ex)
-        //{
-        //    Console.WriteLine(ex.Message);
-        //    Console.WriteLine("Please enter valid instruction");
-        //    Start(new string[0]);
-        //}
-
+        try
+        {
+            Log.Information("Starting up...");
+            CreateHostBuilder(args).Build().Run();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application start-up failed");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
-    
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+          Host.CreateDefaultBuilder(args)
+              .UseSerilog()
+              .UseSystemd() // this method used to deploy worker service on linux
+              .ConfigureServices((hostContext, services) =>
+              {
+                  //services.AddSingleton<Terminal>();
+                  services.AddSingleton<TrashingProcessor>();
+                  services.AddHostedService<TrashingWorker>();
+                  
+              });
+
+
 }
+
 
 

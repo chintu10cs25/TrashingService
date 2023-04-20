@@ -5,6 +5,7 @@ namespace TrashingService
 {
     public class TrashingWorker : BackgroundService
     {
+
         private readonly ILogger<TrashingWorker> _logger;
         private readonly TrashingProcessor _processor;
         public TrashingWorker(ILogger<TrashingWorker> logger, TrashingProcessor processor)

@@ -511,7 +511,7 @@ public class TrashingProcessor
                 if (File.Exists(item))
                 {
                     File.Delete(item);
-                    _logger.LogInformation(item);
+                    //_logger.LogInformation(item);
                     fileCount++;
                 }
                 else if (Directory.Exists(item))
@@ -537,7 +537,7 @@ public class TrashingProcessor
             foreach (var dir in sortedDirectories)
             {
                 Directory.Delete(dir);
-                Console.WriteLine(dir);
+                //_logger.LogInformation(dir);
             }
 
             sw.Stop();
